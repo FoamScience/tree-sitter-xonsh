@@ -1,0 +1,41 @@
+{
+  "name": "tree-sitter-xonsh",
+  "version": "0.1.0",
+  "description": "Xonsh grammar for tree-sitter",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FoamScience/tree-sitter-xonsh"
+  },
+  "license": "MIT",
+  "main": "bindings/node",
+  "types": "bindings/node",
+  "keywords": [
+    "incremental",
+    "parsing",
+    "tree-sitter",
+    "xonsh",
+    "python",
+    "shell"
+  ],
+  "files": [
+    "grammar.js",
+    "binding.gyp",
+    "prebuilds/**",
+    "bindings/node/*",
+    "queries/*",
+    "src/**",
+    "*.wasm"
+  ],
+  "devDependencies": {
+    "tree-sitter-cli": "^0.26.3",
+    "tree-sitter-python": "^0.23.0"
+  },
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "build": "tree-sitter generate",
+    "test": "tree-sitter test",
+    "parse": "tree-sitter parse",
+    "build-wasm": "tree-sitter build --wasm",
+    "playground": "tree-sitter build --wasm && tree-sitter playground"
+  }
+}
