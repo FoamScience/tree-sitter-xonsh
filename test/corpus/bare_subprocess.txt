@@ -1,0 +1,565 @@
+================================================================================
+Bare subprocess - flag detection (-x)
+================================================================================
+
+ls -la
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word))))))
+
+================================================================================
+Bare subprocess - long flag detection (--flag)
+================================================================================
+
+git --version
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word))))))
+
+================================================================================
+Bare subprocess - pipe detection
+================================================================================
+
+cat file | grep pattern
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word)))
+      (subprocess_pipeline
+        (pipe_operator)
+        (subprocess_command
+          (subprocess_argument
+            (subprocess_word))
+          (subprocess_argument
+            (subprocess_word)))))))
+
+================================================================================
+Bare subprocess - output redirect
+================================================================================
+
+echo hello > output.txt
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_redirect
+            operator: (redirect_operator)
+            target: (redirect_target
+              (subprocess_word))))))))
+
+================================================================================
+Bare subprocess - input redirect
+================================================================================
+
+cat < input.txt
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_redirect
+            operator: (redirect_operator)
+            target: (redirect_target
+              (subprocess_word))))))))
+
+================================================================================
+Bare subprocess - absolute path command
+================================================================================
+
+/usr/bin/python3 script.py
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word))))))
+
+================================================================================
+Bare subprocess - relative path command
+================================================================================
+
+./my-script.sh arg1 arg2
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word))))))
+
+================================================================================
+Bare subprocess - home path command
+================================================================================
+
+~/bin/mycommand --help
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word))))))
+
+================================================================================
+Bare subprocess - env variable argument
+================================================================================
+
+cd $HOME
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (env_variable
+            (identifier)))))))
+
+================================================================================
+Bare subprocess - multiple flags
+================================================================================
+
+grep -r -i pattern
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word))))))
+
+================================================================================
+Bare subprocess - stderr redirect
+================================================================================
+
+make 2> errors.log
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_redirect
+            operator: (redirect_operator)
+            target: (redirect_target
+              (subprocess_word))))))))
+
+================================================================================
+Bare subprocess - complex pipeline
+================================================================================
+
+cat /etc/passwd | grep root | head -1
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word)))
+      (subprocess_pipeline
+        (pipe_operator)
+        (subprocess_command
+          (subprocess_argument
+            (subprocess_word))
+          (subprocess_argument
+            (subprocess_word))))
+      (subprocess_pipeline
+        (pipe_operator)
+        (subprocess_command
+          (subprocess_argument
+            (subprocess_word))
+          (subprocess_argument
+            (subprocess_word)))))))
+
+================================================================================
+NOT subprocess - assignment
+================================================================================
+
+ls = "value"
+
+---
+
+(module
+  (expression_statement
+    (assignment
+      left: (identifier)
+      right: (string
+        (string_start)
+        (string_content)
+        (string_end)))))
+
+================================================================================
+NOT subprocess - function call
+================================================================================
+
+print("hello")
+
+---
+
+(module
+  (expression_statement
+    (call
+      function: (identifier)
+      arguments: (argument_list
+        (string
+          (string_start)
+          (string_content)
+          (string_end))))))
+
+================================================================================
+NOT subprocess - comparison
+================================================================================
+
+x == y
+
+---
+
+(module
+  (expression_statement
+    (comparison_operator
+      (identifier)
+      (identifier))))
+
+================================================================================
+NOT subprocess - attribute access
+================================================================================
+
+foo.bar
+
+---
+
+(module
+  (expression_statement
+    (attribute
+      object: (identifier)
+      attribute: (identifier))))
+
+================================================================================
+NOT subprocess - subscript
+================================================================================
+
+foo[0]
+
+---
+
+(module
+  (expression_statement
+    (subscript
+      value: (identifier)
+      subscript: (integer))))
+
+================================================================================
+NOT subprocess - Python keyword (def)
+================================================================================
+
+def foo():
+    pass
+
+---
+
+(module
+  (function_definition
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (pass_statement))))
+
+================================================================================
+NOT subprocess - Python keyword (if)
+================================================================================
+
+if True:
+    pass
+
+---
+
+(module
+  (if_statement
+    condition: (true)
+    consequence: (block
+      (pass_statement))))
+
+================================================================================
+NOT subprocess - Python keyword (for)
+================================================================================
+
+for i in range(10):
+    pass
+
+---
+
+(module
+  (for_statement
+    left: (identifier)
+    right: (call
+      function: (identifier)
+      arguments: (argument_list
+        (integer)))
+    body: (block
+      (pass_statement))))
+
+================================================================================
+Mixed - Python then bare subprocess
+================================================================================
+
+x = 1
+ls -la
+
+---
+
+(module
+  (expression_statement
+    (assignment
+      left: (identifier)
+      right: (integer)))
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word))))))
+
+================================================================================
+Explicit subprocess - not bare (should still work)
+================================================================================
+
+$(ls -la)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word))))))))
+
+================================================================================
+NOT subprocess - method call
+================================================================================
+
+foo.bar()
+
+---
+
+(module
+  (expression_statement
+    (call
+      function: (attribute
+        object: (identifier)
+        attribute: (identifier))
+      arguments: (argument_list))))
+
+================================================================================
+NOT subprocess - walrus operator
+================================================================================
+
+x := 5
+
+---
+
+(module
+  (expression_statement
+    (named_expression
+      name: (identifier)
+      value: (integer))))
+
+================================================================================
+NOT subprocess - not equal
+================================================================================
+
+x != y
+
+---
+
+(module
+  (expression_statement
+    (comparison_operator
+      (identifier)
+      (identifier))))
+
+================================================================================
+Bare subprocess - flag with equals (--key=value)
+================================================================================
+
+docker run --env=FOO=bar image
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))))))
+
+================================================================================
+Bare subprocess - logical AND detection (&&)
+================================================================================
+
+mycmd arg && echo done
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word)))
+      (subprocess_logical
+        operator: (logical_operator)
+        (subprocess_command
+          (subprocess_argument (subprocess_word))
+          (subprocess_argument (subprocess_word)))))))
+
+================================================================================
+Bare subprocess - background execution (&)
+================================================================================
+
+sleep 100 &
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))))))
+
+================================================================================
+Bare subprocess - captured subprocess as argument
+================================================================================
+
+id $(whoami)
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument
+          (captured_subprocess
+            body: (subprocess_body
+              (subprocess_command
+                (subprocess_argument (subprocess_word))))))))))
+
+================================================================================
+Bare subprocess - tokenized substitution as argument
+================================================================================
+
+showcmd @$(echo hello)
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument
+          (tokenized_substitution
+            body: (subprocess_body
+              (subprocess_command
+                (subprocess_argument (subprocess_word))
+                (subprocess_argument (subprocess_word))))))))))
+
+================================================================================
+Bare subprocess - uncaptured subprocess as argument
+================================================================================
+
+cmd $[ls -la]
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument
+          (uncaptured_subprocess
+            body: (subprocess_body
+              (subprocess_command
+                (subprocess_argument (subprocess_word))
+                (subprocess_argument (subprocess_word))))))))))

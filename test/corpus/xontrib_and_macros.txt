@@ -1,0 +1,202 @@
+================================================================================
+Xontrib load - single
+================================================================================
+
+xontrib load dalias
+
+---
+
+(module
+  (xonsh_statement
+    (xontrib_statement
+      (xontrib_name))))
+
+================================================================================
+Xontrib load - multiple on one line
+================================================================================
+
+xontrib load sh fish_completer
+
+---
+
+(module
+  (xonsh_statement
+    (xontrib_statement
+      (xontrib_name)
+      (xontrib_name))))
+
+================================================================================
+Xontrib load - with line continuation
+================================================================================
+
+xontrib load sh \
+             fish_completer
+
+---
+
+(module
+  (xonsh_statement
+    (xontrib_statement
+      (xontrib_name)
+      (line_continuation)
+      (xontrib_name))))
+
+================================================================================
+Macro call - simple
+================================================================================
+
+nudf!(ls -la)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (macro_call
+        name: (identifier)
+        argument: (macro_argument)))))
+
+================================================================================
+Macro call - with complex expression
+================================================================================
+
+mymacro!(some args here)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (macro_call
+        name: (identifier)
+        argument: (macro_argument)))))
+
+================================================================================
+At object with chained attribute access
+================================================================================
+
+@.imp.json.loads('{"a":1}')
+
+---
+
+(module
+  (expression_statement
+    (call
+      function: (attribute
+        object: (attribute
+          object: (xonsh_expression
+            (at_object
+              attribute: (identifier)))
+          attribute: (identifier))
+        attribute: (identifier))
+      arguments: (argument_list
+        (string
+          (string_start)
+          (string_content)
+          (string_end))))))
+
+================================================================================
+At object used in function return
+================================================================================
+
+return @.imp.pandas.DataFrame(data)
+
+---
+
+(module
+  (return_statement
+    (call
+      function: (attribute
+        object: (attribute
+          object: (xonsh_expression
+            (at_object
+              attribute: (identifier)))
+          attribute: (identifier))
+        attribute: (identifier))
+      arguments: (argument_list
+        (identifier)))))
+
+================================================================================
+Subprocess macro - simple
+================================================================================
+
+mytest! "Hello!"
+
+---
+
+(module
+  (subprocess_macro
+    argument: (subprocess_macro_argument)))
+
+================================================================================
+Subprocess macro - with multiple arguments
+================================================================================
+
+echo! This is a raw string with {braces} and $vars
+
+---
+
+(module
+  (subprocess_macro
+    argument: (subprocess_macro_argument)))
+
+================================================================================
+Block macro - simple with! statement
+================================================================================
+
+with! SomeContext():
+    pass
+
+---
+
+(module
+  (block_macro_statement
+    context: (call
+      function: (identifier)
+      arguments: (argument_list))
+    body: (block
+      (pass_statement))))
+
+================================================================================
+Block macro - with alias
+================================================================================
+
+with! Writer('file.txt') as f:
+    some_content
+
+---
+
+(module
+  (block_macro_statement
+    context: (call
+      function: (identifier)
+      arguments: (argument_list
+        (string
+          (string_start)
+          (string_content)
+          (string_end))))
+    alias: (identifier)
+    body: (block
+      (expression_statement
+        (identifier)))))
+
+================================================================================
+Mid-command subprocess macro - bash -c!
+================================================================================
+
+bash -c! echo "Hello!"
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (string
+          (string_start)
+          (string_content)
+          (string_end)))))))
+

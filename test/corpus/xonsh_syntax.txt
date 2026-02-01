@@ -1,0 +1,628 @@
+================================================================================
+Environment variable
+================================================================================
+
+$HOME
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (env_variable
+        (identifier)))))
+
+================================================================================
+Braced environment variable
+================================================================================
+
+${PATH}
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (env_variable_braced
+        expression: (identifier)))))
+
+================================================================================
+Captured subprocess
+================================================================================
+
+$(ls)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))))))))
+
+================================================================================
+Captured subprocess with arguments
+================================================================================
+
+$(ls -la)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word))))))))
+
+================================================================================
+Captured subprocess with built-in modifier
+================================================================================
+
+$(@json echo '{}')
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        modifier: (subprocess_modifier
+          (identifier))
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (string
+                (string_start)
+                (string_content)
+                (string_end)))))))))
+
+================================================================================
+Captured subprocess with custom modifier
+================================================================================
+
+$(@path which xonsh)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        modifier: (subprocess_modifier
+          (identifier))
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word))))))))
+
+================================================================================
+Uncaptured subprocess object with modifier
+================================================================================
+
+![@noerr ls nofile]
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (uncaptured_subprocess_object
+        modifier: (subprocess_modifier
+          (identifier))
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word))))))))
+
+================================================================================
+Captured subprocess object
+================================================================================
+
+!(git status)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess_object
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word))))))))
+
+================================================================================
+Uncaptured subprocess
+================================================================================
+
+$[echo hello]
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (uncaptured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word))))))))
+
+================================================================================
+Uncaptured subprocess object
+================================================================================
+
+![make]
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (uncaptured_subprocess_object
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))))))))
+
+================================================================================
+Standard glob
+================================================================================
+
+g`*.txt`
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (glob_pattern
+        pattern: (glob_pattern_content)))))
+
+================================================================================
+Subprocess with env variable
+================================================================================
+
+$(echo $HOME)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (env_variable
+                (identifier)))))))))
+
+================================================================================
+Subprocess with pipeline
+================================================================================
+
+$(cat file | grep pattern)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word)))
+          (subprocess_pipeline
+            (pipe_operator)
+            (subprocess_command
+              (subprocess_argument
+                (subprocess_word))
+              (subprocess_argument
+                (subprocess_word)))))))))
+
+================================================================================
+Python evaluation in subprocess
+================================================================================
+
+$(echo @(name))
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (python_evaluation
+                expression: (identifier)))))))))
+
+================================================================================
+Tokenized substitution
+================================================================================
+
+@$(ls)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (tokenized_substitution
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))))))))
+
+================================================================================
+Assignment with subprocess
+================================================================================
+
+x = $(pwd)
+
+---
+
+(module
+  (expression_statement
+    (assignment
+      left: (identifier)
+      right: (xonsh_expression
+        (captured_subprocess
+          body: (subprocess_body
+            (subprocess_command
+              (subprocess_argument
+                (subprocess_word)))))))))
+
+================================================================================
+Function call with env variable
+================================================================================
+
+print($HOME)
+
+---
+
+(module
+  (expression_statement
+    (call
+      function: (identifier)
+      arguments: (argument_list
+        (xonsh_expression
+          (env_variable
+            (identifier)))))))
+
+================================================================================
+Pure Python code
+================================================================================
+
+x = 1
+y = "hello"
+
+---
+
+(module
+  (expression_statement
+    (assignment
+      left: (identifier)
+      right: (integer)))
+  (expression_statement
+    (assignment
+      left: (identifier)
+      right: (string
+        (string_start)
+        (string_content)
+        (string_end)))))
+
+================================================================================
+Python function with xonsh
+================================================================================
+
+def greet():
+    print($HOME)
+
+---
+
+(module
+  (function_definition
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (expression_statement
+        (call
+          function: (identifier)
+          arguments: (argument_list
+            (xonsh_expression
+              (env_variable
+                (identifier)))))))))
+
+================================================================================
+Environment variable assignment
+================================================================================
+
+$HOME = "/home/user"
+
+---
+
+(module
+  (xonsh_statement
+    (env_assignment
+      left: (env_variable
+        (identifier))
+      right: (string
+        (string_start)
+        (string_content)
+        (string_end)))))
+
+================================================================================
+Environment variable deletion
+================================================================================
+
+del $PATH
+
+---
+
+(module
+  (xonsh_statement
+    (env_deletion
+      target: (env_variable
+        (identifier)))))
+
+================================================================================
+Subprocess with AND logical operator
+================================================================================
+
+$(cmd1 && cmd2)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word)))
+          (subprocess_logical
+            operator: (logical_operator)
+            (subprocess_command
+              (subprocess_argument
+                (subprocess_word)))))))))
+
+================================================================================
+Subprocess with OR logical operator
+================================================================================
+
+$(cmd1 || cmd2)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word)))
+          (subprocess_logical
+            operator: (logical_operator)
+            (subprocess_command
+              (subprocess_argument
+                (subprocess_word)))))))))
+
+================================================================================
+Subprocess with stderr redirect
+================================================================================
+
+$(echo hello err> /dev/null)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_redirect
+                operator: (redirect_operator)
+                target: (redirect_target
+                  (subprocess_word))))))))))
+
+================================================================================
+Subprocess with stream merge 2>&1
+================================================================================
+
+$(cmd 2>&1)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_redirect
+                operator: (stream_merge_operator)))))))))
+
+================================================================================
+Subprocess with stream merge err>out
+================================================================================
+
+$(cmd err>out)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_redirect
+                operator: (stream_merge_operator)))))))))
+
+================================================================================
+At object access
+================================================================================
+
+@.env
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (at_object
+        attribute: (identifier)))))
+
+================================================================================
+At object lastcmd
+================================================================================
+
+@.lastcmd
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (at_object
+        attribute: (identifier)))))
+
+================================================================================
+Braced env variable with expression
+================================================================================
+
+${"HOME"}
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (env_variable_braced
+        expression: (string
+          (string_start)
+          (string_content)
+          (string_end))))))
+
+================================================================================
+Python evaluation with expression
+================================================================================
+
+$(echo @(x + 1))
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (python_evaluation
+                expression: (binary_operator
+                  left: (identifier)
+                  right: (integer))))))))))
+
+================================================================================
+Chained logical operators
+================================================================================
+
+$(cmd1 && cmd2 || cmd3)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word)))
+          (subprocess_logical
+            operator: (logical_operator)
+            (subprocess_command
+              (subprocess_argument
+                (subprocess_word))))
+          (subprocess_logical
+            operator: (logical_operator)
+            (subprocess_command
+              (subprocess_argument
+                (subprocess_word)))))))))
+
+================================================================================
+Mixed pipeline and logical
+================================================================================
+
+$(cat file | grep x && echo found)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word)))
+          (subprocess_pipeline
+            (pipe_operator)
+            (subprocess_command
+              (subprocess_argument
+                (subprocess_word))
+              (subprocess_argument
+                (subprocess_word))))
+          (subprocess_logical
+            operator: (logical_operator)
+            (subprocess_command
+              (subprocess_argument
+                (subprocess_word))
+              (subprocess_argument
+                (subprocess_word)))))))))

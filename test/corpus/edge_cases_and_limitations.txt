@@ -1,0 +1,378 @@
+================================================================================
+LIMITATION: Unknown command parsed as Python
+================================================================================
+
+myunknownapp
+
+---
+
+(module
+  (expression_statement (identifier)))
+
+================================================================================
+WORKAROUND: Use explicit subprocess for unknown commands
+================================================================================
+
+$[myunknownapp]
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (uncaptured_subprocess
+        body: (subprocess_body
+          (subprocess_command (subprocess_argument (subprocess_word))))))))
+
+================================================================================
+EDGE: Single & is background
+================================================================================
+
+$(cmd) &
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (background_command
+        (captured_subprocess
+          body: (subprocess_body
+            (subprocess_command (subprocess_argument (subprocess_word)))))))))
+
+================================================================================
+EDGE: Double && is boolean operator
+================================================================================
+
+$(cmd1) && $(cmd2)
+
+---
+
+(module
+  (expression_statement
+    (boolean_operator
+      left: (xonsh_expression
+        (captured_subprocess
+          body: (subprocess_body
+            (subprocess_command (subprocess_argument (subprocess_word))))))
+      right: (xonsh_expression
+        (captured_subprocess
+          body: (subprocess_body
+            (subprocess_command (subprocess_argument (subprocess_word)))))))))
+
+================================================================================
+EDGE: Nested subprocess in function call
+================================================================================
+
+result = func($(cmd1), $(cmd2))
+
+---
+
+(module
+  (expression_statement
+    (assignment
+      left: (identifier)
+      right: (call
+        function: (identifier)
+        arguments: (argument_list
+          (xonsh_expression
+            (captured_subprocess
+              body: (subprocess_body
+                (subprocess_command (subprocess_argument (subprocess_word))))))
+          (xonsh_expression
+            (captured_subprocess
+              body: (subprocess_body
+                (subprocess_command (subprocess_argument (subprocess_word)))))))))))
+
+================================================================================
+EDGE: Subprocess with nested Python eval containing subprocess
+================================================================================
+
+$(echo @($(pwd)))
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument (subprocess_word))
+            (subprocess_argument
+              (python_evaluation
+                expression: (xonsh_expression
+                  (captured_subprocess
+                    body: (subprocess_body
+                      (subprocess_command (subprocess_argument (subprocess_word))))))))))))))
+
+================================================================================
+EDGE: List comprehension with subprocess
+================================================================================
+
+[$(echo @(x)) for x in items]
+
+---
+
+(module
+  (expression_statement
+    (list_comprehension
+      body: (xonsh_expression
+        (captured_subprocess
+          body: (subprocess_body
+            (subprocess_command
+              (subprocess_argument (subprocess_word))
+              (subprocess_argument (python_evaluation expression: (identifier)))))))
+      (for_in_clause left: (identifier) right: (identifier)))))
+
+================================================================================
+EDGE: Braced env variable with expression
+================================================================================
+
+${'USER' + '_NAME'}
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (env_variable_braced
+        expression: (binary_operator
+          left: (string (string_start) (string_content) (string_end))
+          right: (string (string_start) (string_content) (string_end)))))))
+
+================================================================================
+EDGE: Env variable as subscript
+================================================================================
+
+data[$HOME]
+
+---
+
+(module
+  (expression_statement
+    (subscript
+      value: (identifier)
+      subscript: (xonsh_expression (env_variable (identifier))))))
+
+================================================================================
+EDGE: Multiple redirects
+================================================================================
+
+$(cmd > out.txt 2> err.txt)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument (subprocess_word))
+            (subprocess_argument
+              (subprocess_redirect operator: (redirect_operator) target: (redirect_target (subprocess_word))))
+            (subprocess_argument
+              (subprocess_redirect operator: (redirect_operator) target: (redirect_target (subprocess_word))))))))))
+
+================================================================================
+EDGE: Redirect to env variable
+================================================================================
+
+$(cmd > $LOGFILE)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument (subprocess_word))
+            (subprocess_argument
+              (subprocess_redirect
+                operator: (redirect_operator)
+                target: (redirect_target (env_variable (identifier)))))))))))
+
+================================================================================
+EDGE: Ternary with subprocess
+================================================================================
+
+result = $(cmd1) if cond else $(cmd2)
+
+---
+
+(module
+  (expression_statement
+    (assignment
+      left: (identifier)
+      right: (conditional_expression
+        (xonsh_expression
+          (captured_subprocess
+            body: (subprocess_body (subprocess_command (subprocess_argument (subprocess_word))))))
+        (identifier)
+        (xonsh_expression
+          (captured_subprocess
+            body: (subprocess_body (subprocess_command (subprocess_argument (subprocess_word))))))))))
+
+================================================================================
+EDGE: Lambda with subprocess
+================================================================================
+
+f = lambda: $(echo hi)
+
+---
+
+(module
+  (expression_statement
+    (assignment
+      left: (identifier)
+      right: (lambda
+        body: (xonsh_expression
+          (captured_subprocess
+            body: (subprocess_body
+              (subprocess_command
+                (subprocess_argument (subprocess_word))
+                (subprocess_argument (subprocess_word))))))))))
+
+================================================================================
+EDGE: Path literal with method chain
+================================================================================
+
+p"/home".read_text()
+
+---
+
+(module
+  (expression_statement
+    (call
+      function: (attribute
+        object: (xonsh_expression
+          (path_string
+            prefix: (path_prefix)
+            string: (string (string_start) (string_content) (string_end))))
+        attribute: (identifier))
+      arguments: (argument_list))))
+
+================================================================================
+EDGE: Double dash argument
+================================================================================
+
+git -- --help
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))))))
+
+================================================================================
+EDGE: Words starting with and/or are NOT operators
+================================================================================
+
+$(android order ordinary)
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument (subprocess_word))
+            (subprocess_argument (subprocess_word))
+            (subprocess_argument (subprocess_word))))))))
+
+================================================================================
+EDGE: Walrus operator inside python evaluation
+================================================================================
+
+echo Hello @(_name := input('Name: '))
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument
+          (python_evaluation
+            expression: (named_expression
+              name: (identifier)
+              value: (call
+                function: (identifier)
+                arguments: (argument_list
+                  (string
+                    (string_start)
+                    (string_content)
+                    (string_end)))))))))))
+
+================================================================================
+EDGE: Env assignment without spaces around equals
+================================================================================
+
+$MYVAR="hello"
+
+---
+
+(module
+  (xonsh_statement
+    (env_prefix_statement
+      (env_prefix
+        (env_variable (identifier))
+        value: (string
+          (string_start)
+          (string_content)
+          (string_end))))))
+
+================================================================================
+EDGE: Env assignment with integer value
+================================================================================
+
+$PORT=8080
+
+---
+
+(module
+  (xonsh_statement
+    (env_prefix_statement
+      (env_prefix
+        (env_variable (identifier))
+        value: (integer)))))
+
+================================================================================
+EDGE: Double-at decorator with @.imp
+================================================================================
+
+@@.imp.functools.wraps(func)
+def wrapper():
+    pass
+
+---
+
+(module
+  (decorated_definition
+    (decorator
+      (call
+        function: (attribute
+          object: (attribute
+            object: (xonsh_expression
+              (at_object
+                attribute: (identifier)))
+            attribute: (identifier))
+          attribute: (identifier))
+        arguments: (argument_list
+          (identifier))))
+    definition: (function_definition
+      name: (identifier)
+      parameters: (parameters)
+      body: (block
+        (pass_statement)))))
