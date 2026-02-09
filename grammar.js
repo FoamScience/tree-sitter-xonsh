@@ -235,7 +235,7 @@ module.exports = grammar(Python, {
     // Use token() with high precedence to prevent ! from being leaked as a separate token by other rules
     // Allows backslash escapes (e.g., \; \$ \space)
     // Allows @ in middle of words (e.g., user@host in URLs) but not at word start
-    subprocess_word: _ => token(prec(100, /([^\s$@`'"()\[\]{}|<>&;\\](@[^\s$`'"()\[\]{}|<>&;\\]+)?|\\[^\n])+/)),
+    subprocess_word: _ => token(prec(100, /([^\s$@`'"()\[\]{}|<>&;#\\](@[^\s$`'"()\[\]{}|<>&;#\\]+)?|\\[^\n])+/)),
 
     subprocess_pipeline: $ => seq(
       $.pipe_operator,
