@@ -16,6 +16,24 @@ ls -la
           (subprocess_word))))))
 
 ================================================================================
+Bare subprocess - subprocess with a comment
+================================================================================
+
+ls -la  # comment
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (subprocess_word)))))
+  (comment))
+
+================================================================================
 Bare subprocess - long flag detection (--flag)
 ================================================================================
 
