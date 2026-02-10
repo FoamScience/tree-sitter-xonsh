@@ -755,6 +755,21 @@ static DetectResult detect_subprocess_line(TSLexer *lexer, size_t *subprocess_ma
             continue;
         }
 
+        // Numeric arguments after whitespace (e.g., cmd 1 2 3)
+        // In Python, `identifier number` without an operator is a SyntaxError;
+        // in subprocess context, numbers are valid arguments.
+        if (is_digit(c) && prev_was_space && brace_depth == 0) {
+            advance(lexer);
+            while (is_digit(lexer->lookahead) || lexer->lookahead == '.') {
+                advance(lexer);
+            }
+            has_bare_word_arg = true;
+            seen_shell_signal = true;
+            prev_was_ident_no_space = false;
+            prev_was_space = false;
+            continue;
+        }
+
         // Check for $ patterns - both env vars and subprocess operators
         // $VAR, $(cmd), $[cmd] are all shell signals when after whitespace
         if (c == '$' && prev_was_space) {
