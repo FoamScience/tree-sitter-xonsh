@@ -582,3 +582,102 @@ cmd $[ls -la]
                 (subprocess_argument (subprocess_word))
                 (subprocess_argument (subprocess_word))))))))))
 
+================================================================================
+Bare subprocess - unknown command with bare word argument
+================================================================================
+
+unknowncmd arg
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))))))
+
+================================================================================
+Bare subprocess - unknown command with multiple bare word arguments
+================================================================================
+
+unknowncmd arg1 arg2
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))))))
+
+================================================================================
+NOT subprocess - not operator
+================================================================================
+
+not True
+
+---
+
+(module
+  (expression_statement
+    (not_operator
+      argument: (true))))
+
+================================================================================
+NOT subprocess - addition
+================================================================================
+
+x + y
+
+---
+
+(module
+  (expression_statement
+    (binary_operator
+      left: (identifier)
+      right: (identifier))))
+
+================================================================================
+NOT subprocess - boolean and
+================================================================================
+
+x and y
+
+---
+
+(module
+  (expression_statement
+    (boolean_operator
+      left: (identifier)
+      right: (identifier))))
+
+================================================================================
+NOT subprocess - boolean or
+================================================================================
+
+x or y
+
+---
+
+(module
+  (expression_statement
+    (boolean_operator
+      left: (identifier)
+      right: (identifier))))
+
+================================================================================
+NOT subprocess - comma expression
+================================================================================
+
+x, y
+
+---
+
+(module
+  (expression_statement
+    (identifier)
+    (identifier)))
+

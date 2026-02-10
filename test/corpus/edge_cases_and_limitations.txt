@@ -13,7 +13,7 @@ LIMITATION: Python 2 backtick repr is parsed as regex glob (obsolete syntax)
         pattern: (regex_glob_content)))))
 
 ================================================================================
-LIMITATION: Python 2 print >> redirect is parsed as bare subprocess (obsolete syntax)
+Python 2 print >> redirect is parsed as print_statement (not subprocess)
 ================================================================================
 
 print >> stderr
@@ -22,27 +22,14 @@ print >> stderr, "hello", "world"
 ---
 
 (module
-  (bare_subprocess
-    body: (subprocess_body
-      (subprocess_command
-        (subprocess_argument (subprocess_word))
-        (subprocess_argument
-          (subprocess_redirect
-            operator: (redirect_operator)
-            target: (redirect_target (subprocess_word)))))))
-  (bare_subprocess
-    body: (subprocess_body
-      (subprocess_command
-        (subprocess_argument (subprocess_word))
-        (subprocess_argument
-          (subprocess_redirect
-            operator: (redirect_operator)
-            target: (redirect_target (subprocess_word))))
-        (subprocess_argument
-          (string (string_start) (string_content) (string_end)))
-        (subprocess_argument (subprocess_word))
-        (subprocess_argument
-          (string (string_start) (string_content) (string_end)))))))
+  (print_statement
+    (chevron
+      (identifier)))
+  (print_statement
+    (chevron
+      (identifier))
+    argument: (string (string_start) (string_content) (string_end))
+    argument: (string (string_start) (string_content) (string_end))))
 
 ================================================================================
 LIMITATION: Unknown command parsed as Python
@@ -71,7 +58,7 @@ $[myunknownapp]
           (subprocess_command (subprocess_argument (subprocess_word))))))))
 
 ================================================================================
-LIMITATION: Alias invocation without shell signals parsed as Python
+Alias invocation with bare word argument detected as subprocess
 ================================================================================
 
 aliases['myapp'] = 'echo hello'
@@ -92,9 +79,11 @@ myapp world
       (subprocess_command
         (subprocess_argument (subprocess_word))
         (subprocess_argument (subprocess_word)))))
-  (expression_statement (identifier))
-  (MISSING _newline)
-  (expression_statement (identifier)))
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word))))))
 
 ================================================================================
 WORKAROUND: Use explicit subprocess for alias invocations
