@@ -1,4 +1,50 @@
 ================================================================================
+LIMITATION: Python 2 backtick repr is parsed as regex glob (obsolete syntax)
+================================================================================
+
+`1`
+
+---
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (regex_glob
+        pattern: (regex_glob_content)))))
+
+================================================================================
+LIMITATION: Python 2 print >> redirect is parsed as bare subprocess (obsolete syntax)
+================================================================================
+
+print >> stderr
+print >> stderr, "hello", "world"
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument
+          (subprocess_redirect
+            operator: (redirect_operator)
+            target: (redirect_target (subprocess_word)))))))
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument
+          (subprocess_redirect
+            operator: (redirect_operator)
+            target: (redirect_target (subprocess_word))))
+        (subprocess_argument
+          (string (string_start) (string_content) (string_end)))
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument
+          (string (string_start) (string_content) (string_end)))))))
+
+================================================================================
 LIMITATION: Unknown command parsed as Python
 ================================================================================
 
@@ -23,6 +69,56 @@ $[myunknownapp]
       (uncaptured_subprocess
         body: (subprocess_body
           (subprocess_command (subprocess_argument (subprocess_word))))))))
+
+================================================================================
+LIMITATION: Alias invocation without shell signals parsed as Python
+================================================================================
+
+aliases['myapp'] = 'echo hello'
+myapp --version
+myapp world
+
+---
+
+(module
+  (expression_statement
+    (assignment
+      left: (subscript
+        value: (identifier)
+        subscript: (string (string_start) (string_content) (string_end)))
+      right: (string (string_start) (string_content) (string_end))))
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument (subprocess_word))
+        (subprocess_argument (subprocess_word)))))
+  (expression_statement (identifier))
+  (MISSING _newline)
+  (expression_statement (identifier)))
+
+================================================================================
+WORKAROUND: Use explicit subprocess for alias invocations
+================================================================================
+
+aliases['myapp'] = 'echo hello'
+$[myapp world]
+
+---
+
+(module
+  (expression_statement
+    (assignment
+      left: (subscript
+        value: (identifier)
+        subscript: (string (string_start) (string_content) (string_end)))
+      right: (string (string_start) (string_content) (string_end))))
+  (expression_statement
+    (xonsh_expression
+      (uncaptured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument (subprocess_word))
+            (subprocess_argument (subprocess_word))))))))
 
 ================================================================================
 EDGE: Single & is background
