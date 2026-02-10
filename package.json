@@ -1,6 +1,6 @@
 {
   "name": "tree-sitter-xonsh",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Xonsh grammar for tree-sitter",
   "repository": {
     "type": "git",
