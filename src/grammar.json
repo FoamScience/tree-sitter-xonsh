@@ -6992,33 +6992,8 @@
           "content": {
             "type": "ALIAS",
             "content": {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "p"
-                },
-                {
-                  "type": "STRING",
-                  "value": "pf"
-                },
-                {
-                  "type": "STRING",
-                  "value": "pr"
-                },
-                {
-                  "type": "STRING",
-                  "value": "P"
-                },
-                {
-                  "type": "STRING",
-                  "value": "PF"
-                },
-                {
-                  "type": "STRING",
-                  "value": "PR"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "_path_prefix"
             },
             "named": true,
             "value": "path_prefix"
@@ -7251,7 +7226,7 @@
         "value": 100,
         "content": {
           "type": "PATTERN",
-          "value": "([^\\s$@`'\"()\\[\\]{}|<>&;#\\\\](@[^\\s$`'\"()\\[\\]{}|<>&;#\\\\]+)?|\\\\[^\\n])+"
+          "value": "([^\\s$@`'\"()\\[\\]{}|<>&;#\\\\](@[^\\s$@`'\"()\\[\\]{}|<>&;#\\\\]+)?|\\\\[^\\n])+"
         }
       }
     },
@@ -7814,11 +7789,8 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "TOKEN",
-            "content": {
-              "type": "STRING",
-              "value": "with!"
-            }
+            "type": "SYMBOL",
+            "name": "_block_macro_start"
           },
           {
             "type": "FIELD",
@@ -8165,6 +8137,14 @@
     {
       "type": "SYMBOL",
       "name": "_subprocess_macro_start"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_block_macro_start"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_path_prefix"
     }
   ],
   "inline": [

@@ -5004,10 +5004,6 @@
     "named": false
   },
   {
-    "type": "with!",
-    "named": false
-  },
-  {
     "type": "xontrib",
     "named": false
   },
