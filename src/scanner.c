@@ -151,6 +151,8 @@ static const char *python_keywords[] = {
     "finally", "with", "import", "from", "return", "yield", "raise", "pass",
     "break", "continue", "del", "global", "nonlocal", "assert", "lambda",
     "async", "await", "match", "case", "type",
+    // Python keywords that start valid `keyword word` statements
+    "print", "not", "exec",
     // Xonsh reserved words (prevent subprocess detection)
     "xontrib",
     NULL
@@ -163,6 +165,29 @@ static bool is_python_keyword(const char *ident, size_t len) {
     for (int i = 0; python_keywords[i] != NULL; i++) {
         size_t kw_len = strlen(python_keywords[i]);
         if (kw_len == len && strncmp(ident, python_keywords[i], len) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Python operator keywords that appear between identifiers in valid Python.
+ * e.g., `x and y`, `x or y`, `x is y`, `x in y`, `x not in y`, `x as y`
+ * When these appear after whitespace mid-line, they are NOT bare word arguments.
+ */
+static const char *python_operator_keywords[] = {
+    "and", "or", "is", "in", "not", "as",
+    NULL
+};
+
+/**
+ * Check if the identifier matches a Python operator keyword
+ */
+static bool is_python_operator_keyword(const char *ident, size_t len) {
+    for (int i = 0; python_operator_keywords[i] != NULL; i++) {
+        size_t kw_len = strlen(python_operator_keywords[i]);
+        if (kw_len == len && strncmp(ident, python_operator_keywords[i], len) == 0) {
             return true;
         }
     }
@@ -500,6 +525,10 @@ static DetectResult detect_subprocess_line(TSLexer *lexer, size_t *subprocess_ma
     bool has_env_arg = false;       // identifier followed by $VAR (e.g., cd $HOME)
     bool has_macro_call = false;    // identifier!( (xonsh function macro call)
     bool has_subprocess_macro = false;  // identifier! (xonsh subprocess macro)
+    bool has_bare_word_arg = false;      // identifier after whitespace (not keyword)
+    bool has_python_keyword_op = false;  // 'and', 'or', 'is', etc. between idents
+    bool has_python_arith_op = false;    // +, %, ^, ~, , (clearly Python-only operators)
+    int brace_depth = 0;                 // track {} depth for comma handling
 
     bool in_string = false;
     char string_char = 0;
@@ -703,8 +732,23 @@ static DetectResult detect_subprocess_line(TSLexer *lexer, size_t *subprocess_ma
 
         // Track if we just saw an identifier (with no space before next char)
         if (is_identifier_start(c)) {
-            while (is_identifier_char(lexer->lookahead)) {
+            char word[64];
+            size_t word_len = 0;
+            word[word_len++] = (char)c;
+            advance(lexer);  // advance past first char (c == lexer->lookahead at loop top)
+            while (is_identifier_char(lexer->lookahead) && word_len < 63) {
+                word[word_len++] = (char)lexer->lookahead;
                 advance(lexer);
+            }
+            word[word_len] = '\0';
+
+            if (prev_was_space && brace_depth == 0) {
+                if (is_python_operator_keyword(word, word_len)) {
+                    has_python_keyword_op = true;
+                } else {
+                    has_bare_word_arg = true;
+                    seen_shell_signal = true;
+                }
             }
 
             prev_was_ident_no_space = true;
@@ -760,24 +804,45 @@ static DetectResult detect_subprocess_line(TSLexer *lexer, size_t *subprocess_ma
             continue;
         }
 
+        // Semicolons are Python statement separators — stop scanning here
+        // so we only analyze the first statement on the line.
+        // Comments (#) also end the scannable portion of the line.
+        if (c == ';' || c == '#') {
+            break;
+        }
+
+        // Track brace depth for comma handling
+        if (c == '{') brace_depth++;
+        if (c == '}' && brace_depth > 0) brace_depth--;
+
+        // Track clearly-Python arithmetic operators
+        // Commas only count at top level (not inside braces, which are brace expansion)
+        if (c == '+' || c == '%' || c == '^' || c == '~' ||
+            (c == ',' && brace_depth == 0)) {
+            has_python_arith_op = true;
+        }
+
         // Any other character (operators, punctuation, etc.)
         prev_was_ident_no_space = false;
         prev_was_space = false;
         advance(lexer);
     }
 
-    // Decision logic: Python signals override shell signals
-    // BUT subprocess macro mid-line should still allow subprocess parsing
+    // Decision logic: Strong Python signals override all shell signals
     if (has_assignment || has_comparison || has_call_parens ||
         has_subscript || has_attribute || has_macro_call) {
         return DETECT_NONE;  // Strong Python signals
     }
 
-    // Subprocess macro at start is a special case (already handled by DETECT_SUBPROCESS_MACRO)
-    // Subprocess macro mid-line should still parse as subprocess
+    // Python operator keywords and arithmetic ops cancel bare word detection
+    // but do NOT override strong shell signals (flags, pipes, redirects, etc.)
+    bool effective_bare_word = has_bare_word_arg &&
+        !has_python_keyword_op && !has_python_arith_op;
+
     // Shell signals indicate subprocess
-    if (has_flag || has_pipe || has_redirect || has_env_arg || has_subprocess_macro) {
-        return DETECT_SUBPROCESS;  // Shell signals (including mid-line macro)
+    if (has_flag || has_pipe || has_redirect || has_env_arg ||
+        has_subprocess_macro || effective_bare_word) {
+        return DETECT_SUBPROCESS;  // Shell signals (including mid-line macro, bare word args)
     }
 
     // Known shell command without other signals (e.g., "make", "cd /tmp")
