@@ -461,3 +461,102 @@ def wrapper():
       parameters: (parameters)
       body: (block
         (pass_statement)))))
+
+================================================================================
+EDGE: Double-at decorator simple no-call (@@.name)
+================================================================================
+
+@@.functools
+def wrapper():
+    pass
+
+---
+
+(module
+  (decorated_definition
+    (decorator
+      (xonsh_expression
+        (at_object
+          attribute: (identifier))))
+    definition: (function_definition
+      name: (identifier)
+      parameters: (parameters)
+      body: (block
+        (pass_statement)))))
+
+================================================================================
+EDGE: Double-at decorator simple with call (@@.name(args))
+================================================================================
+
+@@.functools(func)
+def wrapper():
+    pass
+
+---
+
+(module
+  (decorated_definition
+    (decorator
+      (call
+        function: (xonsh_expression
+          (at_object
+            attribute: (identifier)))
+        arguments: (argument_list
+          (identifier))))
+    definition: (function_definition
+      name: (identifier)
+      parameters: (parameters)
+      body: (block
+        (pass_statement)))))
+
+================================================================================
+EDGE: Double-at decorator chained no-call (@@.mod.attr)
+================================================================================
+
+@@.imp.functools
+def wrapper():
+    pass
+
+---
+
+(module
+  (decorated_definition
+    (decorator
+      (attribute
+        object: (xonsh_expression
+          (at_object
+            attribute: (identifier)))
+        attribute: (identifier)))
+    definition: (function_definition
+      name: (identifier)
+      parameters: (parameters)
+      body: (block
+        (pass_statement)))))
+
+================================================================================
+EDGE: Double-at decorator chained with call (@@.mod.attr.method())
+================================================================================
+
+@@.imp.functools.wraps()
+def wrapper():
+    pass
+
+---
+
+(module
+  (decorated_definition
+    (decorator
+      (call
+        function: (attribute
+          object: (attribute
+            object: (xonsh_expression
+              (at_object
+                attribute: (identifier)))
+            attribute: (identifier))
+          attribute: (identifier))
+        arguments: (argument_list)))
+    definition: (function_definition
+      name: (identifier)
+      parameters: (parameters)
+      body: (block
+        (pass_statement)))))
