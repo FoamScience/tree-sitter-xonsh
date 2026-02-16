@@ -7,10 +7,14 @@
 #include "tree_sitter/parser.h"
 
 #include <assert.h>
-#include <ctype.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
+
+static bool is_alnum(int c) {
+    return (c >= '0' && c <= '9') ||
+           (c >= 'a' && c <= 'z') ||
+           (c >= 'A' && c <= 'Z');
+}
 
 enum TokenType {
     NEWLINE,
@@ -1126,7 +1130,7 @@ bool tree_sitter_xonsh_external_scanner_scan(void *payload, TSLexer *lexer, cons
                 if (lexer->lookahead == 'd') {
                     advance(lexer);
                     // Check that next char is not alphanumeric (word boundary)
-                    if (!isalnum(lexer->lookahead) && lexer->lookahead != '_') {
+                    if (!is_alnum(lexer->lookahead) && lexer->lookahead != '_') {
                         lexer->mark_end(lexer);
                         lexer->result_symbol = KEYWORD_AND;
                         return true;
@@ -1142,7 +1146,7 @@ bool tree_sitter_xonsh_external_scanner_scan(void *payload, TSLexer *lexer, cons
             if (lexer->lookahead == 'r') {
                 advance(lexer);
                 // Check that next char is not alphanumeric (word boundary)
-                if (!isalnum(lexer->lookahead) && lexer->lookahead != '_') {
+                if (!is_alnum(lexer->lookahead) && lexer->lookahead != '_') {
                     lexer->mark_end(lexer);
                     lexer->result_symbol = KEYWORD_OR;
                     return true;
