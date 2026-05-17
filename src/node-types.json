@@ -4368,6 +4368,14 @@
       "required": true,
       "types": [
         {
+          "type": "subprocess_logical",
+          "named": true
+        },
+        {
+          "type": "subprocess_pipeline",
+          "named": true
+        },
+        {
           "type": "xontrib_name",
           "named": true
         }

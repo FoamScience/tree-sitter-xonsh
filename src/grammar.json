@@ -7701,6 +7701,22 @@
             "type": "SYMBOL",
             "name": "xontrib_name"
           }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "subprocess_pipeline"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "subprocess_logical"
+              }
+            ]
+          }
         }
       ]
     },

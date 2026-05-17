@@ -329,10 +329,16 @@ module.exports = grammar(Python, {
     )),
 
     // Xontrib Statement: xontrib load name1 name2 ...
+    // Allows shell-operator chaining (e.g. "xontrib load x && echo hi"),
+    // since xontrib is dispatched as a subprocess command at runtime.
     xontrib_statement: $ => seq(
       'xontrib',
       'load',
       repeat1($.xontrib_name),
+      repeat(choice(
+        $.subprocess_pipeline,
+        $.subprocess_logical,
+      )),
     ),
 
     // Xontrib names can start with numbers (e.g., 1password)

@@ -42,6 +42,66 @@ xontrib load sh \
       (xontrib_name))))
 
 ================================================================================
+Xontrib load - chained with && (logical and)
+================================================================================
+
+xontrib load x && echo hi
+
+---
+
+(module
+  (xonsh_statement
+    (xontrib_statement
+      (xontrib_name)
+      (subprocess_logical
+        (logical_operator)
+        (subprocess_command
+          (subprocess_argument
+            (subprocess_word))
+          (subprocess_argument
+            (subprocess_word)))))))
+
+================================================================================
+Xontrib load - chained with || (logical or)
+================================================================================
+
+xontrib load x || echo fallback
+
+---
+
+(module
+  (xonsh_statement
+    (xontrib_statement
+      (xontrib_name)
+      (subprocess_logical
+        (logical_operator)
+        (subprocess_command
+          (subprocess_argument
+            (subprocess_word))
+          (subprocess_argument
+            (subprocess_word)))))))
+
+================================================================================
+Xontrib load - piped to another command
+================================================================================
+
+xontrib load x | grep foo
+
+---
+
+(module
+  (xonsh_statement
+    (xontrib_statement
+      (xontrib_name)
+      (subprocess_pipeline
+        (pipe_operator)
+        (subprocess_command
+          (subprocess_argument
+            (subprocess_word))
+          (subprocess_argument
+            (subprocess_word)))))))
+
+================================================================================
 Macro call - simple
 ================================================================================
 
