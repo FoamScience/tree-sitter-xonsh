@@ -296,6 +296,10 @@
 (subprocess_macro
   argument: (subprocess_macro_argument) @string.special)
 
+; Trailing ! inside a subprocess: $(cmd ! raw text)
+(subprocess_raw_bang
+  text: (subprocess_raw_text) @string.special)
+
 ; ===========================================================================
 ; Block Macro (with! Context():)
 ; ===========================================================================

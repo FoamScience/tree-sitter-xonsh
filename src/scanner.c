@@ -44,6 +44,10 @@ enum TokenType {
     BLOCK_MACRO_START,
     // path string prefix: p, pf, pr, P, PF, PR (only when followed by quote)
     PATH_PREFIX,
+    // raw text between a trailing ! and the subprocess closer: $(cmd ! raw text)
+    SUBPROCESS_RAW_TEXT,
+    // ':' starting an f-string format spec, emitted before the lexer sees ':='
+    FORMAT_SPEC_COLON,
 };
 
 typedef enum {
@@ -877,6 +881,16 @@ bool tree_sitter_xonsh_external_scanner_scan(void *payload, TSLexer *lexer, cons
     Scanner *scanner = (Scanner *)payload;
 
     bool error_recovery_mode = valid_symbols[STRING_CONTENT] && valid_symbols[INDENT];
+
+    // Inside a replacement field a ':' always opens the format spec, so the
+    // internal lexer's greedy ':=' match is wrong there: the '=' is a fill/align
+    // char. A real walrus must be parenthesised — f"{(x:=5)}".
+    if (valid_symbols[FORMAT_SPEC_COLON] && !error_recovery_mode && lexer->lookahead == ':') {
+        advance(lexer);
+        lexer->mark_end(lexer);
+        lexer->result_symbol = FORMAT_SPEC_COLON;
+        return true;
+    }
     bool within_brackets = valid_symbols[CLOSE_BRACE] || valid_symbols[CLOSE_PAREN] || valid_symbols[CLOSE_BRACKET];
 
     bool advanced_once = false;
@@ -1157,6 +1171,36 @@ bool tree_sitter_xonsh_external_scanner_scan(void *payload, TSLexer *lexer, cons
     }
 
     // Check for subprocess macro AND bare subprocess at the start of a line
+    // Raw text after a trailing ! inside a subprocess, up to the unbalanced
+    // closer: $(cmd ! raw text). Brackets nest (xonsh's any_nested_raw), so
+    // track depth rather than stopping at the first closer.
+    if (valid_symbols[SUBPROCESS_RAW_TEXT] && !error_recovery_mode) {
+        while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+            skip(lexer);
+        }
+        unsigned depth = 0;
+        bool has_text = false;
+        while (lexer->lookahead && lexer->lookahead != '\n') {
+            int32_t c = lexer->lookahead;
+            if (c == '(' || c == '[' || c == '{') {
+                depth++;
+            } else if (c == ')' || c == ']' || c == '}') {
+                if (depth == 0) {
+                    break;
+                }
+                depth--;
+            }
+            advance(lexer);
+            has_text = true;
+        }
+        if (has_text) {
+            lexer->mark_end(lexer);
+            lexer->result_symbol = SUBPROCESS_RAW_TEXT;
+            return true;
+        }
+        return false;
+    }
+
     // Subprocess macro: identifier! args (not identifier!( which is function macro)
     // Bare subprocess: detected by shell-like heuristics
     //

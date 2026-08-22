@@ -25,6 +25,8 @@ module.exports = grammar(Python, {
     $._subprocess_macro_start,  // Subprocess macro: identifier! (consumed by scanner)
     $._block_macro_start,      // Block macro: with! (consumed by scanner)
     $._path_prefix,            // Path string prefix: p/pf/pr/P/PF/PR (only when followed by quote)
+    $._subprocess_raw_text,    // Raw text between a trailing ! and the subprocess closer
+    $._format_spec_colon,      // ':' opening an f-string format spec (beats the ':=' token)
   ]),
 
   rules: {
@@ -109,6 +111,16 @@ module.exports = grammar(Python, {
       ')',
     ),
 
+    // Subprocess pyeval macro: @!(raw_text)
+    // Like @(...) but content is captured as a raw string with no tokenization
+    // and appended as a single argument. Added in xonsh 0.23.
+    // See xonsh/parsers/base.py:p_subproc_atom_pyeval_macro.
+    pyeval_macro: $ => seq(
+      '@!(',
+      field('argument', optional(alias(/[^)]+/, $.pyeval_macro_argument))),
+      ')',
+    ),
+
     // Special @ Object Access: @.env, @.lastcmd, etc.
     at_object: $ => seq(
       '@',
@@ -186,6 +198,20 @@ module.exports = grammar(Python, {
         $.subprocess_pipeline,
         $.subprocess_logical,
       )),
+      optional($.subprocess_raw_bang),
+    ),
+
+    // Trailing ! before a subprocess closer.
+    //   $(cmd !)          -> appends an empty string argument
+    //   $(cmd ! raw text) -> text up to the closer is passed verbatim
+    // See p_atom_bang_empty_fistful_of_dollars / p_atom_bang_fistful_of_dollars.
+    // prec above subprocess_word so a lone ! is not swallowed as a word.
+    subprocess_raw_bang: $ => seq(
+      token(prec(101, '!')),
+      optional(field('text', alias(
+        $._subprocess_raw_text,
+        $.subprocess_raw_text,
+      ))),
     ),
 
     // Subprocess command and args
@@ -199,6 +225,7 @@ module.exports = grammar(Python, {
       $.captured_subprocess,
       $.uncaptured_subprocess,
       $.tokenized_substitution,
+      $.pyeval_macro,
       $.regex_glob,
       $.glob_pattern,
       $.formatted_glob,
@@ -400,6 +427,7 @@ module.exports = grammar(Python, {
       $.uncaptured_subprocess_object,
       $.python_evaluation,
       $.tokenized_substitution,
+      $.pyeval_macro,
       $.regex_glob,
       $.glob_pattern,
       $.formatted_glob,
@@ -426,6 +454,18 @@ module.exports = grammar(Python, {
       $.help_expression,
       $.super_help_expression,
       $.xontrib_statement,
+    ),
+
+    // tree-sitter-python lexes ":=" greedily, so a format spec whose fill/align
+    // char is "=" (f"{v:=>10}") is misread as a walrus. CPython only accepts a
+    // walrus here when parenthesised. The scanner emits _format_spec_colon for
+    // the ':' before the internal lexer can take ':=' as one token.
+    format_specifier: $ => seq(
+      $._format_spec_colon,
+      repeat(choice(
+        token(prec(1, /[^{}\n]+/)),
+        alias($.interpolation, $.format_expression),
+      )),
     ),
 
     // Add xonsh constructs to primary_expression (for use in Python expressions)
