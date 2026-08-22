@@ -3570,6 +3570,10 @@
         {
           "type": "subprocess_pipeline",
           "named": true
+        },
+        {
+          "type": "subprocess_raw_bang",
+          "named": true
         }
       ]
     }
@@ -3663,6 +3667,22 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "subprocess_raw_bang",
+    "named": true,
+    "fields": {
+      "text": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "subprocess_raw_text",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -4426,6 +4446,10 @@
     }
   },
   {
+    "type": "!",
+    "named": false
+  },
+  {
     "type": "!(",
     "named": false
   },
@@ -5013,6 +5037,10 @@
   },
   {
     "type": "subprocess_macro_argument",
+    "named": true
+  },
+  {
+    "type": "subprocess_raw_text",
     "named": true
   },
   {

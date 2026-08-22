@@ -661,3 +661,103 @@ $(cat file | grep x && echo found)
                 (subprocess_word))
               (subprocess_argument
                 (subprocess_word)))))))))
+
+================================================================================
+Trailing ! in subprocess - empty
+================================================================================
+
+$(echo hi !)
+
+--------------------------------------------------------------------------------
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word)))
+          (subprocess_raw_bang))))))
+
+================================================================================
+Trailing ! in subprocess - raw text with nested brackets
+================================================================================
+
+$(echo hi ! raw {text} (and) more)
+
+--------------------------------------------------------------------------------
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (captured_subprocess
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word)))
+          (subprocess_raw_bang
+            text: (subprocess_raw_text)))))))
+
+================================================================================
+Trailing ! in uncaptured subprocess object
+================================================================================
+
+![ls -la ! trailing raw]
+
+--------------------------------------------------------------------------------
+
+(module
+  (expression_statement
+    (xonsh_expression
+      (uncaptured_subprocess_object
+        body: (subprocess_body
+          (subprocess_command
+            (subprocess_argument
+              (subprocess_word))
+            (subprocess_argument
+              (subprocess_word)))
+          (subprocess_raw_bang
+            text: (subprocess_raw_text)))))))
+
+================================================================================
+F-string format spec with = fill char
+================================================================================
+
+f"{v:=>10}"
+f"{(x:=5)}"
+f"{a!r:^{w}}"
+
+--------------------------------------------------------------------------------
+
+(module
+  (expression_statement
+    (string
+      (string_start)
+      (interpolation
+        expression: (identifier)
+        format_specifier: (format_specifier))
+      (string_end)))
+  (expression_statement
+    (string
+      (string_start)
+      (interpolation
+        expression: (parenthesized_expression
+          (named_expression
+            name: (identifier)
+            value: (integer))))
+      (string_end)))
+  (expression_statement
+    (string
+      (string_start)
+      (interpolation
+        expression: (identifier)
+        type_conversion: (type_conversion)
+        format_specifier: (format_specifier
+          (format_expression
+            expression: (identifier))))
+      (string_end))))

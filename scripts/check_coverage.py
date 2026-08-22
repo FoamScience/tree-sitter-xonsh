@@ -304,27 +304,26 @@ XONSH_CONSTRUCTS = [
         "done",
         "Override of Python boolean_operator",
     ),
-    # === Known gaps ===
     (
         "trailing ! in subprocess (empty)",
         "p_atom_bang_empty_fistful_of_dollars",
-        [],
-        "gap",
+        ["subprocess_raw_bang"],
+        "done",
         "e.g. $(cmd !) — trailing ! before closer appends empty string arg",
     ),
     (
         "trailing ! in subprocess (raw text)",
         "p_atom_bang_fistful_of_dollars",
-        [],
-        "gap",
-        "e.g. $(cmd ! raw text) — ! acts as raw-string boundary before closer",
+        ["subprocess_raw_bang"],
+        "done",
+        "e.g. $(cmd ! raw text) — scanner reads to the unbalanced closer",
     ),
     (
         "f-string format spec starting with =",
         "p_fstring_format_spec",
-        [],
-        "gap",
-        'e.g. f"{v:=>10}" — tree-sitter-python (through 0.25) reads ":=" as walrus',
+        ["format_specifier"],
+        "done",
+        'e.g. f"{v:=>10}" — scanner emits the spec colon before ":=" can match',
     ),
 ]
 
