@@ -281,6 +281,41 @@ Tokenized substitution
               (subprocess_word))))))))
 
 ================================================================================
+Pyeval macro - inside subprocess (xonsh 0.23+)
+================================================================================
+
+ls @!(foo + bar)
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (pyeval_macro
+            argument: (pyeval_macro_argument)))))))
+
+================================================================================
+Pyeval macro - empty
+================================================================================
+
+ls @!()
+
+---
+
+(module
+  (bare_subprocess
+    body: (subprocess_body
+      (subprocess_command
+        (subprocess_argument
+          (subprocess_word))
+        (subprocess_argument
+          (pyeval_macro))))))
+
+================================================================================
 Assignment with subprocess
 ================================================================================
 

@@ -7,10 +7,28 @@ This document tracks which xonsh-specific syntax constructs are supported by `tr
 
 ## Target Versions
 
-- **Xonsh**: 0.22.x
+- **Xonsh**: 0.24.x (baseline snapshot 0.24.1)
 - **Python**: 3.10+ (`tree-sitter-python` base grammar)
 
-Parsing compatibility level can be checked by running `uv run scripts/check_coverage.py`
+Parsing compatibility level can be checked by running
+`uv run --with "xonsh==0.24.1" scripts/check_coverage.py`. The script
+performs two checks:
+
+1. **Internal consistency** — every rule listed in the table below is
+   verified to exist in `grammar.js` (fails CI on missing reference).
+2. **Upstream drift** — when `xonsh` is importable, the script also
+   reports any xonsh-flavoured `p_*` rules added or removed in the
+   installed version compared to the pinned baseline. Drift is
+   informational; the maintainer decides whether to extend coverage.
+
+When bumping the pin, regenerate the baseline:
+
+```bash
+uv run --with "xonsh==<new-version>" scripts/check_coverage.py --dump-baseline
+```
+
+…then paste the printed `BASELINE_RULES` set into `check_coverage.py` and
+update `TARGET_XONSH` / `BASELINE_XONSH`.
 
 ## Expressions
 
@@ -24,6 +42,7 @@ Parsing compatibility level can be checked by running `uv run scripts/check_cove
 | `![cmd]` | `p_atom_subproc_uncaptured_object` | `uncaptured_subprocess_object` | Done |
 | `@(expr)` | `p_atom_pyeval` | `python_evaluation` | Done |
 | `@$(cmd)` | `p_atom_subproc_inject` | `tokenized_substitution` | Done |
+| `@!(raw)` | `p_subproc_atom_pyeval_macro` | `pyeval_macro` | Done (xonsh 0.23+) |
 | `@.attr` | `p_atom_at_attribute` | `at_object` | Done |
 | `` `pattern` `` | `p_atom_re_glob` | `regex_glob` | Done |
 | `` r`pattern` `` | `p_atom_re_glob` | `regex_glob` | Done |
@@ -75,6 +94,7 @@ Parsing compatibility level can be checked by running `uv run scripts/check_cove
 |---|---|---|
 | `$(cmd !)` | `p_atom_bang_empty_fistful_of_dollars` | Trailing `!` before closer appends empty string arg |
 | `$(cmd ! raw text)` | `p_atom_bang_fistful_of_dollars` | `!` acts as raw-string boundary; text between `!` and closer is passed verbatim |
+| `f"{v:=>10}"` | `p_fstring_format_spec` | Format spec beginning with `=` is mis-lexed as walrus `:=`; inherited from `tree-sitter-python` (still present in 0.25) |
 
 These rules handle `!` appearing **inside** subprocess operators (`$(...)`, `!(...)`, `$[...]`, `![...]`) as a raw-string boundary marker. The "empty" variant (`$(cmd !)`) appends `""` to the argument list. The "nocloser" variant (`$(cmd ! arbitrary {raw} text)`) captures everything between `!` and the closing delimiter as a literal string, bypassing normal tokenization. Both are extremely rare in practice.
 

@@ -3148,6 +3148,22 @@
     }
   },
   {
+    "type": "pyeval_macro",
+    "named": true,
+    "fields": {
+      "argument": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "pyeval_macro_argument",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "python_evaluation",
     "named": true,
     "fields": {
@@ -3494,6 +3510,10 @@
         },
         {
           "type": "glob_pattern",
+          "named": true
+        },
+        {
+          "type": "pyeval_macro",
           "named": true
         },
         {
@@ -4294,6 +4314,10 @@
           "named": true
         },
         {
+          "type": "pyeval_macro",
+          "named": true
+        },
+        {
           "type": "python_evaluation",
           "named": true
         },
@@ -4607,6 +4631,10 @@
   },
   {
     "type": "@",
+    "named": false
+  },
+  {
+    "type": "@!(",
     "named": false
   },
   {
@@ -4946,6 +4974,10 @@
   {
     "type": "print",
     "named": false
+  },
+  {
+    "type": "pyeval_macro_argument",
+    "named": true
   },
   {
     "type": "r`",

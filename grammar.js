@@ -109,6 +109,16 @@ module.exports = grammar(Python, {
       ')',
     ),
 
+    // Subprocess pyeval macro: @!(raw_text)
+    // Like @(...) but content is captured as a raw string with no tokenization
+    // and appended as a single argument. Added in xonsh 0.23.
+    // See xonsh/parsers/base.py:p_subproc_atom_pyeval_macro.
+    pyeval_macro: $ => seq(
+      '@!(',
+      field('argument', optional(alias(/[^)]+/, $.pyeval_macro_argument))),
+      ')',
+    ),
+
     // Special @ Object Access: @.env, @.lastcmd, etc.
     at_object: $ => seq(
       '@',
@@ -199,6 +209,7 @@ module.exports = grammar(Python, {
       $.captured_subprocess,
       $.uncaptured_subprocess,
       $.tokenized_substitution,
+      $.pyeval_macro,
       $.regex_glob,
       $.glob_pattern,
       $.formatted_glob,
@@ -400,6 +411,7 @@ module.exports = grammar(Python, {
       $.uncaptured_subprocess_object,
       $.python_evaluation,
       $.tokenized_substitution,
+      $.pyeval_macro,
       $.regex_glob,
       $.glob_pattern,
       $.formatted_glob,
