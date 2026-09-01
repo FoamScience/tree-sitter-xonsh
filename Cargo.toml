@@ -11,14 +11,33 @@ edition = "2021"
 autoexamples = false
 
 build = "bindings/rust/build.rs"
-include = ["bindings/rust/*", "grammar.js", "queries/*", "src/*"]
+# anchored, file by file: an unanchored pattern matches at any depth (a bare
+# `grammar.js` pulled in node_modules/tree-sitter-python/grammar.js) and
+# `src/*` shipped the gitignored parser.o / scanner.o build artifacts.
+include = [
+    "/bindings/rust/build.rs",
+    "/bindings/rust/lib.rs",
+    "/grammar.js",
+    "/queries/*.scm",
+    "/src/grammar.json",
+    "/src/node-types.json",
+    "/src/parser.c",
+    "/src/scanner.c",
+    "/src/tree_sitter/*.h",
+    "/LICENSE",
+    "/README.md",
+]
 
 [lib]
 path = "bindings/rust/lib.rs"
 
 [dependencies]
-tree-sitter = ">=0.22.6"
 tree-sitter-language = "0.1.6"
+
+# only the doctest and the unit test parse anything — consumers bring their own
+# tree-sitter, so this crate does not pin a version for them
+[dev-dependencies]
+tree-sitter = ">=0.22.6"
 
 [build-dependencies]
 cc = "1.0.87"
