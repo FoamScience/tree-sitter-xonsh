@@ -51,6 +51,21 @@ jobs:
       - name: Test import
         run: python -c "import tree_sitter_xonsh; print(tree_sitter_xonsh.language())"
 
+  test-rust-bindings:
+    name: Test Rust bindings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Rust tests
+        run: cargo test
+
+      # `cargo test` never looks at what gets packaged: an `include` pattern
+      # that sweeps in build artifacts, or drops a header the build needs,
+      # only shows up here
+      - name: Check the crate packages
+        run: cargo publish --dry-run
+
   test-node-bindings:
     name: Test Node bindings
     runs-on: ubuntu-latest
