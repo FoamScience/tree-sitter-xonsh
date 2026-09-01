@@ -71,3 +71,40 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  publish-crate:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: crates-io
+      url: https://crates.io/crates/tree-sitter-xonsh
+    permissions:
+      id-token: write  # OIDC token exchange, as the PyPI job does
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # the version lives in five manifests; a tag that disagrees with
+      # Cargo.toml would publish the wrong number, and it cannot be taken back
+      - name: Check the tag matches Cargo.toml
+        run: |
+          crate=$(cargo metadata --no-deps --format-version 1 \
+            | python3 -c "import json,sys; print(json.load(sys.stdin)['packages'][0]['version'])")
+          tag="${GITHUB_REF#refs/tags/v}"
+          test "$crate" = "$tag" || {
+            echo "Cargo.toml is $crate but the tag is v$tag"; exit 1;
+          }
+
+      # trusted publishing: crates.io hands out a short-lived token to this
+      # repo+workflow, revoked when the job ends — no stored secret. Configure
+      # it on the crate's Settings page; it needs one manual publish first.
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+
+      - name: Publish to crates.io
+        run: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+          # Without trusted publishing, drop the auth step above and use a
+          # repository secret instead: ${{ secrets.CARGO_REGISTRY_TOKEN }}
